@@ -39,7 +39,7 @@ void printArray(int* inArray, int arraySize);					// print array over serial
 void printArray(char* inArray, int arraySize);					// print array over serial
 //void overwriteArray(int* inArray, int arraySize, int val);		// overwrite array with value
 bool isEven(int n);
-long map(long x, long in_min, long in_max, long out_min, long out_max);
+long mapVariables(long x, long in_min, long in_max, long out_min, long out_max);
 // converts a CSV line from string to individual values within int array, returns number of variables
 int convertFromCSV(char *inString, int *valArray);
 
