@@ -7,14 +7,14 @@
 *
 *	Website - http://www.openbionics.com/
 *	GitHub - https://github.com/Open-Bionics
-*	Email - ollymcbride@openbionics.com 
+*	Email - ollymcbride@openbionics.com
 *
 *	OpenBionics_Artichoke.ino
 *
 */
 
 #include <FingerLib.h>			// This library can be downloaded from https://github.com/Open-Bionics
-#include <Wire.h>  
+#include <Wire.h>
 #include <EEPROM.h>
 
 // Bleufuit libraries for the bluetooth radio
@@ -29,7 +29,7 @@
 #if not defined (_VARIANT_ARDUINO_DUE_X_) && not defined (_VARIANT_ARDUINO_ZERO_)
     #include <SoftwareSerial.h>
 #endif
-  
+
 #include "Globals.h"
 
 #include "GripControl.h"
@@ -48,7 +48,7 @@
 
 
 #ifdef HANDLE_EN
-#include "Wiichuck.h"			// Nunchuck library, written by jnw.walker@gmail.com	
+#include "Wiichuck.h"			// Nunchuck library, written by jnw.walker@gmail.com
 #include "HANDle.h"
 #endif
 
@@ -62,7 +62,7 @@
 *	V1.0.0	|	08/01/16	|	Initial release for Ada hand and Almond boards using Atmega 2560
 *	V1.0.1	|	03/02/16	|	Modified formatting and cleaned up
 *	V1.1.0	|	31/03/16	|	Added research and HANDle mode. Fixed motorEn and muscle graph
-*	V1.1.1	|	17/05/16	|	Increased PWM timer freq to prevent hum and implemented customDelay() instead of delay()		
+*	V1.1.1	|	17/05/16	|	Increased PWM timer freq to prevent hum and implemented customDelay() instead of delay()
 *	V1.2.0	|	22/08/16	|	Re-written EMG control (now allows both 1 & 2 channel control)
 *
 *
@@ -81,7 +81,7 @@
 
 
 Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
-  
+
 // A small helper
 void error(const __FlashStringHelper*err) {
   Serial.println(err);
@@ -91,78 +91,46 @@ void error(const __FlashStringHelper*err) {
 void setup()
 {
         // Radio Code
-        // Check for user input
-        char inputs[BUFSIZE+1];
-      
-        if ( getUserInput(inputs, BUFSIZE) )
-        {
-          // Send characters to Bluefruit
-          Serial.print("[Send] ");
-          Serial.println(inputs);
-      
-          ble.print("AT+BLEUARTTX=");
-          ble.println(inputs);
-      
-          // check response stastus
-          if (! ble.waitForOK() ) {
-            Serial.println(F("Failed to send?"));
-          }
-        }
-      
-        // Check for incoming characters from Bluefruit
-        ble.println("AT+BLEUARTRX");
-        ble.readline();
-        if (strcmp(ble.buffer, "OK") == 0) {
-          // no data
-          return;
-        }
-        // Some data was found, its in the buffer
-        Serial.print(F("[Recv] ")); Serial.println(ble.buffer);
-        ble.waitForOK(); 
-        // More Radio Code
-        while (!Serial);  // required for Flora & Micro
-        delay(500);
-      
         Serial.begin(115200);
-        Serial.println(F("Connecting to Radio"));
+        Serial.println(F("Adafruit Bluefruit Command Mode Example"));
         Serial.println(F("---------------------------------------"));
-      
-        // Initialise the module 
+
+        /* Initialise the module */
         Serial.print(F("Initialising the Bluefruit LE module: "));
-      
+
         if ( !ble.begin(VERBOSE_MODE) )
         {
           error(F("Couldn't find Bluefruit, make sure it's in CoMmanD mode & check wiring?"));
         }
         Serial.println( F("OK!") );
-      
+
         if ( FACTORYRESET_ENABLE )
         {
-          // Perform a factory reset to make sure everything is in a known state 
+          /* Perform a factory reset to make sure everything is in a known state */
           Serial.println(F("Performing a factory reset: "));
           if ( ! ble.factoryReset() ){
             error(F("Couldn't factory reset"));
           }
         }
-      
-        // Disable command echo from Bluefruit 
+
+        /* Disable command echo from Bluefruit */
         ble.echo(false);
-      
+
         Serial.println("Requesting Bluefruit info:");
-        // Print Bluefruit information 
+        /* Print Bluefruit information */
         ble.info();
-      
+
         Serial.println(F("Please use Adafruit Bluefruit LE app to connect in UART mode"));
         Serial.println(F("Then Enter characters to send to Bluefruit"));
         Serial.println();
-      
+
         ble.verbose(false);  // debug info is a little annoying after this point!
-      
-        // Wait for connection 
+
+        /* Wait for connection */
         while (! ble.isConnected()) {
             delay(500);
         }
-      
+
         // LED Activity command is only supported from 0.6.6
         if ( ble.isVersionAtLeast(MINIMUM_FIRMWARE_VERSION) )
         {
@@ -171,70 +139,63 @@ void setup()
           Serial.println(F("Change LED activity to " MODE_LED_BEHAVIOUR));
           ble.sendCommandCheckOK("AT+HWModeLED=" MODE_LED_BEHAVIOUR);
           Serial.println(F("******************************"));
-        } 
-        
-        
+        }
+
+
         // Hand Code
-        MYSERIAL.begin(38400);		// start serial
-      
-        #if defined(USE_I2C_ADC) || defined(HANDLE_EN)
-      	  Wire.begin();				// if using I2C for I2C_ADC or for HANDle control, initialise I2C
-        #endif
+      //  MYSERIAL.begin(115200);		// start serial
+
+//        #if defined(USE_I2C_ADC) || defined(HANDLE_EN)
+//      	  Wire.begin();				// if using I2C for I2C_ADC or for HANDle control, initialise I2C
+//        #endif
       	timerSetup();				// start timer interrupts
       	setDefaults();				// initialise serialCmd.buffs, finger positions and muscle control, read EEPROM presets
       	IOconfig();					// config finger pins, initialise port expander
-      
-      	startUpMessages();			// print welcome message, current hand configuration/settings
-      
-} 
+
+     // 	startUpMessages();			// print welcome message, current hand configuration/settings
+
+        gripMovement(0, 0);
+}
 
 void loop()
 {
         // Radio
         // Check for user input
         char inputs[BUFSIZE+1];
-      
+
         if ( getUserInput(inputs, BUFSIZE) )
         {
           // Send characters to Bluefruit
           Serial.print("[Send] ");
           Serial.println(inputs);
-      
+
           ble.print("AT+BLEUARTTX=");
           ble.println(inputs);
-      
+
           // check response stastus
           if (! ble.waitForOK() ) {
             Serial.println(F("Failed to send?"));
           }
         }
-      
+
         // Check for incoming characters from Bluefruit
         ble.println("AT+BLEUARTRX");
         ble.readline();
-        if (strcmp(ble.buffer, "OK") == 0) {
+        if (strcmp(ble.buffer, "OK") == 0 || strcmp(ble.buffer, "") == 0) {
           // no data
           return;
         }
-        // Some data was found, its in the buffer
-        Serial.print(F("[Recv] ")); Serial.println(ble.buffer);
+
+        // Subtracting 48 converts from ASCII char to an int
+        int grip = ble.buffer[0] - 48;
+        // Multiplying by 11 converts the range 0-9 to 0-99
+        int pos = (ble.buffer[2] - 48) * 11;
+        Serial.print(F("[Recv] ")); Serial.print(grip); Serial.print(", "); Serial.println(pos);
+        // Control Hand
+        if (0 <= grip && grip <= FINGER_ROLL && 0 <= pos && pos <= 100) {
+          gripMovement(grip, pos);
+        }
         ble.waitForOK();
-  
-        // Hand
-	if (advancedSettings.muscleCtrlFlag > 0)	// muscle/EMG control
-		runEMG();
-
-	if (demoFlag)								// demo mode
-		demoMode();
-
-	// if researchFlag == 1, and no other command is recognised, use CSV string as target motor positions
-	if (advancedSettings.researchFlag == 1)		// if 'A10'
-		researchMode_CSV_TX();
-
-#ifdef HANDLE_EN			
-	if (advancedSettings.HANDle_en)				// HANDle (Nunchuck) control
-		HANDleMain();	
-#endif
 }
 
 /**************************************************************************/
@@ -259,6 +220,6 @@ bool getUserInput(char buffer[], uint8_t maxSize)
     count += Serial.readBytes(buffer+count, maxSize);
     delay(2);
   } while( (count < maxSize) && (Serial.available()) );
-
+  Serial.println("User Input Received.\n");
   return true;
 }
