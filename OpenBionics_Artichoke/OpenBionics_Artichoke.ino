@@ -81,7 +81,7 @@
 
 
 Adafruit_BluefruitLE_UART ble(Serial3, BLUEFRUIT_UART_MODE_PIN);
-
+int debug;
 // A small helper
 void error(const __FlashStringHelper*err) {
   Serial.println(err);
@@ -90,49 +90,56 @@ void error(const __FlashStringHelper*err) {
 
 void setup()
 {
+        debug = 0;
         // Radio Code
-        Serial.begin(115200);
-        Serial.println(F("Adafruit Bluefruit Command Mode Example"));
-        Serial.println(F("---------------------------------------"));
+        if (debug) {
+          Serial.begin(115200);
+          Serial.println(F("Adafruit Bluefruit Command Mode Example"));
+          Serial.println(F("---------------------------------------"));
 
-        /* Initialise the module */
-        Serial.print(F("Initialising the Bluefruit LE module: "));
-
-        if ( !ble.begin(VERBOSE_MODE) )
+          /* Initialise the module */
+          Serial.print(F("Initialising the Bluefruit LE module: "));
+        }
+        if ( !ble.begin(VERBOSE_MODE) && debug)
         {
           error(F("Couldn't find Bluefruit, make sure it's in CoMmanD mode & check wiring?"));
         }
-        Serial.println( F("OK!") );
+        if (debug)
+          Serial.println( F("OK!") );
 
         if ( FACTORYRESET_ENABLE )
         {
-          /* Perform a factory reset to make sure everything is in a known state */
-          Serial.println(F("Performing a factory reset: "));
-          if ( ! ble.factoryReset() ){
-            error(F("Couldn't factory reset"));
-          }
+          if (debug) {
+            /* Perform a factory reset to make sure everything is in a known state */
+            Serial.println(F("Performing a factory reset: "));
+            if ( ! ble.factoryReset() ){
+              error(F("Couldn't factory reset"));
+            }
+        }
         }
 
         /* Disable command echo from Bluefruit */
         ble.echo(false);
+        if (debug) {
+          Serial.println("Requesting Bluefruit info:");
+        if (debug)
+          /* Print Bluefruit information */
+          ble.info();
 
-        Serial.println("Requesting Bluefruit info:");
-        /* Print Bluefruit information */
-        ble.info();
-
-        Serial.println(F("Please use Adafruit Bluefruit LE app to connect in UART mode"));
-        Serial.println(F("Then Enter characters to send to Bluefruit"));
-        Serial.println();
-
+          Serial.println(F("Please use Adafruit Bluefruit LE app to connect in UART mode"));
+          Serial.println(F("Then Enter characters to send to Bluefruit"));
+          Serial.println();
+        }
         ble.verbose(false);  // debug info is a little annoying after this point!
 
-        /* Wait for connection */
-        while (! ble.isConnected()) {
-            delay(500);
+        if (debug) {
+          /* Wait for connection */
+          while (! ble.isConnected()) {
+              delay(500);
+          }
         }
-
         // LED Activity command is only supported from 0.6.6
-        if ( ble.isVersionAtLeast(MINIMUM_FIRMWARE_VERSION) )
+        if ( ble.isVersionAtLeast(MINIMUM_FIRMWARE_VERSION) && debug)
         {
           // Change Mode LED Activity
           Serial.println(F("******************************"));
@@ -148,13 +155,16 @@ void setup()
 //        #if defined(USE_I2C_ADC) || defined(HANDLE_EN)
 //      	  Wire.begin();				// if using I2C for I2C_ADC or for HANDle control, initialise I2C
 //        #endif
+        advancedSettings.handFlag = RIGHT;
       	timerSetup();				// start timer interrupts
-      	setDefaults();				// initialise serialCmd.buffs, finger positions and muscle control, read EEPROM presets
+        if (debug) {
+        	setDefaults();				// initialise serialCmd.buffs, finger positions and muscle control, read EEPROM presets
+        }
       	IOconfig();					// config finger pins, initialise port expander
-
+  			EEPROM_writeStruct(ADVANCED_CTRL_LOC,advancedSettings);
      // 	startUpMessages();			// print welcome message, current hand configuration/settings
 
-        gripMovement(0, 0);
+        // gripMovement(0, 0);
 }
 
 void loop()
@@ -162,22 +172,23 @@ void loop()
         // Radio
         // Check for user input
         char inputs[BUFSIZE+1];
+        if (debug) {
+          if ( getUserInput(inputs, BUFSIZE) )
+          {
+            if (debug) {
+              // Send characters to Bluefruit
+              Serial.print("[Send] ");
+              Serial.println(inputs);
+            }
+            ble.print("AT+BLEUARTTX=");
+            ble.println(inputs);
 
-        if ( getUserInput(inputs, BUFSIZE) )
-        {
-          // Send characters to Bluefruit
-          Serial.print("[Send] ");
-          Serial.println(inputs);
-
-          ble.print("AT+BLEUARTTX=");
-          ble.println(inputs);
-
-          // check response stastus
-          if (! ble.waitForOK() ) {
-            Serial.println(F("Failed to send?"));
+            // check response stastus
+            if (! ble.waitForOK() && debug) {
+              Serial.println(F("Failed to send?"));
+            }
           }
         }
-
         // Check for incoming characters from Bluefruit
         ble.println("AT+BLEUARTRX");
         ble.readline();
@@ -189,8 +200,10 @@ void loop()
         // Subtracting 48 converts from ASCII char to an int
         int grip = ble.buffer[0] - 48;
         // Multiplying by 11 converts the range 0-9 to 0-99
-        int pos = (ble.buffer[2] - 48) * 11;
-        Serial.print(F("[Recv] ")); Serial.print(grip); Serial.print(", "); Serial.println(pos);
+        int pos = (ble.buffer[1] - 48) * 11;
+        if (debug) {
+          Serial.print(F("[Recv] ")); Serial.print(grip); Serial.print(", "); Serial.println(pos);
+        }
         // Control Hand
         if (0 <= grip && grip <= FINGER_ROLL && 0 <= pos && pos <= 100) {
           gripMovement(grip, pos);

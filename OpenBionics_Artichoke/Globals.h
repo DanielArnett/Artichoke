@@ -4,7 +4,7 @@
 *
 *	This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
 *	To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/.
-*	
+*
 *	Website - http://www.openbionics.com/
 *	GitHub - https://github.com/Open-Bionics
 *	Email - ollymcbride@openbionics.com
@@ -55,7 +55,7 @@
 #define ON			1	    // EEPROM flag
 #define DISABLE		0	    // ADC channels
 #define EN			1	    // ADC channels
-#define BLANK		(-1)	
+#define BLANK		(-1)
 
 // FINGERS
 #define NUM_FINGERS		5
@@ -66,7 +66,7 @@
 #define FINGER4			4		// pinky
 
 // GRIPS
-#define NUM_GRIPS		6
+#define NUM_GRIPS		7
 #define FIST_GRIP		0
 #define PALM_GRIP	    1
 #define THUMBSUP_GRIP	2
@@ -74,6 +74,7 @@
 #define PINCH_GRIP		4
 #define TRIPOD_GRIP		5
 #define FINGER_ROLL		6					// only used for Demo mode
+#define ROAD_GESTURE		7
 
 // EEPROM LOCATIONS
 #define ADVANCED_CTRL_LOC	  20			// starting pos for advanced control flags
@@ -95,12 +96,12 @@ struct advancedSettingsType					// these settings are stored in EEPROM and are u
 {
 	// one time config flags
 	uint8_t initConfigFlag = false;			// used to indicate whether EEPROM has been configured correctly
-	uint8_t handFlag = BLANK;				// left or right hand
-											// control flags		
+	uint8_t handFlag = RIGHT;				// left or right hand
+											// control flags
 	uint8_t instructionsFlag = BLANK;		// display serial instructions on start up
 	uint8_t muscleGraphFlag = BLANK;		// display muscle graph on startup
 	uint8_t muscleCtrlFlag = BLANK;			// enable muscle control (standard or position) on startup
-	uint8_t gripFlag = BLANK;				// enable/disable grip change 
+	uint8_t gripFlag = BLANK;				// enable/disable grip change
 	uint8_t demoFlag = BLANK;				// run demo mode on startup
 	uint8_t motorEnable = BLANK;			// enable/disable motors
 
@@ -125,7 +126,7 @@ struct textStringType
 	const char* right_left[2] = {"Right","Left"};						// hand types
 	const char* disabled_enabled[2] = {"Disabled","Enabled"};			// motor states
 	const char* grips[NUM_GRIPS+1] = {"Fist","Palm","Thumbs Up","Point","Pinch","Tripod","Finger Roll"};  // grip names
-	
+
 };
 extern struct textStringType textString;
 
