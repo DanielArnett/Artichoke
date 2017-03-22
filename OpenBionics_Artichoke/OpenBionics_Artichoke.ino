@@ -9,7 +9,7 @@
 *	GitHub - https://github.com/Open-Bionics
 *	Email - ollymcbride@openbionics.com
 *
-*	OpenBionics_Artichoke.ino
+*	OpenBionics_Artichoke.inom
 *
 */
 
@@ -90,7 +90,7 @@ void error(const __FlashStringHelper*err) {
 
 void setup()
 {
-        debug = 0;
+        debug = 1;
         // Radio Code
         if (debug) {
           Serial.begin(115200);
@@ -162,7 +162,10 @@ void setup()
         }
       	IOconfig();					// config finger pins, initialise port expander
   			EEPROM_writeStruct(ADVANCED_CTRL_LOC,advancedSettings);
-     // 	startUpMessages();			// print welcome message, current hand configuration/settings
+        // Ensure that the handflag is still RIGHT
+        if (debug) {
+          startUpMessages();			// print welcome message, current hand configuration/settings
+        }
 
         // gripMovement(0, 0);
 }

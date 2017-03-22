@@ -4,7 +4,7 @@
 *
 *	This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
 *	To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/.
-*	
+*
 *	Website - http://www.openbionics.com/
 *	GitHub - https://github.com/Open-Bionics
 *	Email - ollymcbride@openbionics.com
@@ -59,7 +59,7 @@ float codeVal()
 }
 
 // return numerical value after the char code, if no char code, return (-1)
-float parsenumber(char code) 
+float parsenumber(char code)
 {
 	if(codeSeen(code))
 		return codeVal();
@@ -108,7 +108,7 @@ void processCommand(void)    // interpret and store received serial commands
 	serialCmd.sensitivityAdjust = parsenumber('U'); // U update sensitivity offset
 	serialCmd.instructionsFlag = parsenumber('?');  // ? sends serial instructions
 
-	// direction control       
+	// direction control
 	if(parsenumber('O') == 0)                       // O OPEN
 		serialCmd.direction = OPEN;
 	else if(parsenumber('C') == 0)                  // C CLOSE
@@ -176,22 +176,22 @@ void manageSerialSettings(void)
 		MYSERIAL_PRINT_PGM("\n");
 		MYSERIAL_PRINT_PGM("Finger ");
 		MYSERIAL_PRINTLN(serialCmd.fingerNum);
-		
+
 		MYSERIAL_PRINT_PGM("Direction ");
 		if(serialCmd.direction != BLANK)
 			MYSERIAL_PRINTLN(textString.open_close[serialCmd.direction]);
 		else
-		{	
+		{
 			int fingerDir = !finger[serialCmd.fingerNum].readDir();
 			MYSERIAL_PRINTLN(textString.open_close[fingerDir]);
 		}
-		
+
 		MYSERIAL_PRINT_PGM("Stop Position ");
 		if(serialCmd.stopPos != BLANK)
 			MYSERIAL_PRINTLN(serialCmd.stopPos);
 		else
 		MYSERIAL_PRINTLN_PGM("None");
-		
+
 		MYSERIAL_PRINT_PGM("Speed ");
 		if(serialCmd.speed != BLANK)
 			MYSERIAL_PRINTLN(serialCmd.speed);
@@ -201,24 +201,24 @@ void manageSerialSettings(void)
 		fingerControl(serialCmd.fingerNum, serialCmd.stopPos, serialCmd.direction, serialCmd.speed);
 	}
 
-	
+
 	else if(serialCmd.gripNum != BLANK)
 	{
 		MYSERIAL_PRINT_PGM("Grip ");
 		MYSERIAL_PRINTLN(textString.grips[serialCmd.gripNum]);
-		
+
 		MYSERIAL_PRINT_PGM("Direction ");
 		if(serialCmd.direction != BLANK)
 			MYSERIAL_PRINTLN(textString.open_close[serialCmd.direction]);
 		else
 			MYSERIAL_PRINTLN_PGM("None");
-		
+
 		MYSERIAL_PRINT_PGM("Stop Position ");
 		if(serialCmd.stopPos != BLANK)
 			MYSERIAL_PRINTLN(serialCmd.stopPos);
 		else
 			MYSERIAL_PRINTLN((100 * serialCmd.direction));
-			
+
 		MYSERIAL_PRINT_PGM("Speed ");
 		if(serialCmd.speed != BLANK)
 			MYSERIAL_PRINTLN(serialCmd.speed);
@@ -227,24 +227,24 @@ void manageSerialSettings(void)
 			int fingerToRead = (serialCmd.gripNum==THUMBSUP_GRIP)?FINGER0:FINGER1;
 			MYSERIAL_PRINTLN(finger[fingerToRead].readTargetSpeed());
 		}
-			
+
 		MYSERIAL_PRINT_PGM("\n");
 
 		gripMovement(serialCmd.gripNum, serialCmd.stopPos, serialCmd.direction, serialCmd.speed);
 	}
-  
+
 	else if(serialCmd.instructionsFlag != BLANK)
 	{
 		printInstructions();
 	}
-  
+
 	else if(serialCmd.advancedFlag != BLANK)
 	{
 		switch(serialCmd.advancedFlag)
 		{
 			case 0: // demo mode
 				advancedSettings.demoFlag = !advancedSettings.demoFlag;   // toggle flag
-				demoFlag = advancedSettings.demoFlag;      
+				demoFlag = advancedSettings.demoFlag;
 				MYSERIAL_PRINT_PGM("Demo mode toggled ");
 				MYSERIAL_PRINTLN(textString.off_on[advancedSettings.demoFlag]); // print ON/OFF
 				break;
@@ -261,7 +261,7 @@ void manageSerialSettings(void)
 			case 3: // motor enable/disable
 				advancedSettings.motorEnable = !advancedSettings.motorEnable;   // toggle flag
 				MYSERIAL_PRINT_PGM("Motors ");
-				
+
 				MYSERIAL_PRINTLN(textString.disabled_enabled[advancedSettings.motorEnable]);  // print Disabled/Enabled
 				for(int i=0;i<NUM_FINGERS;i++)
 				{
@@ -296,7 +296,7 @@ void manageSerialSettings(void)
 		}
 		EEPROM_writeStruct(ADVANCED_CTRL_LOC,advancedSettings);   // save settings to EEPROM
 	}
-  
+
 	else if(serialCmd.muscleCtrlFlag != BLANK)
 	{
 		switch(serialCmd.muscleCtrlFlag)
@@ -329,10 +329,10 @@ void manageSerialSettings(void)
 			default:
 				break;
 		}
-      
+
 		EEPROM_writeStruct(ADVANCED_CTRL_LOC,advancedSettings);   // store muscle mode in EEPROM
 	}
- 
+
 	else if(serialCmd.handFlag != BLANK)  // if 'H#'
 	{
 		if(serialCmd.handFlag != 0)
@@ -344,14 +344,14 @@ void manageSerialSettings(void)
 		MYSERIAL_PRINT_PGM("Hand is ");
 		MYSERIAL_PRINTLN(textString.right_left[advancedSettings.handFlag-1]); // print which hand is entered
 	}
- 
+
 	else if(serialCmd.demoFlag == 0) // if 'D'
 	{
 		demoFlag = !demoFlag;
 		MYSERIAL_PRINT_PGM("Demo Mode ");
 		MYSERIAL_PRINTLN(textString.off_on[demoFlag]);
 	}
-  
+
 	else if(serialCmd.sensitivityAdjust != BLANK)
 	{
 		if(serialCmd.sensitivityAdjust != 0)
@@ -373,8 +373,8 @@ void manageSerialSettings(void)
 		MYSERIAL_PRINT_PGM("Grip change hold duration ");
 		MYSERIAL_PRINTLN(userSettings.holdTime);
 	}
-	
-	// if research mode == 1, and no other command is recognised, use CSV string as target motor positions 
+
+	// if research mode == 1, and no other command is recognised, use CSV string as target motor positions
 	else if (advancedSettings.researchFlag == 1)		// if 'A10'
 	{
 		researchMode_CSV_RX(serialCmd.cmdBuff);
@@ -389,12 +389,12 @@ void setDefaults(void)
 	EEPROM_readStruct(USER_SETTINGS_LOC,userSettings);
 	EEPROM_readStruct(ADVANCED_CTRL_LOC,advancedSettings);
 
-	if(advancedSettings.initConfigFlag != true) 
+	if(advancedSettings.initConfigFlag != true)
 		initialEEPROMconfig();		// if running for the first time, write default values to EEPROM
-			
+
 	currentGrip = FIST_GRIP;
 	demoFlag = advancedSettings.demoFlag;
-	
+
 	clearAll();       // set all serial/command serialCmd.buff variables to -1
 
 }
@@ -415,7 +415,7 @@ void clearAll(void)    //clear all input variables for the next string
 	serialCmd.advancedFlag = BLANK;
 	serialCmd.muscleCtrlFlag = BLANK;
 	serialCmd.instructionsFlag = BLANK;
-	serialCmd.handFlag = BLANK;
+	serialCmd.handFlag = RIGHT;
 	serialCmd.demoFlag = BLANK;
 	serialCmd.sensitivityAdjust = BLANK;
 	serialCmd.resetFlag = BLANK;
@@ -425,7 +425,7 @@ void clearAll(void)    //clear all input variables for the next string
 void initialEEPROMconfig(void)			// write default values to EEPROM
 {
 	MYSERIAL_PRINT_PGM("Initialising EEPROM values...");
-	
+
 	advancedSettings.handFlag = RIGHT;
 	advancedSettings.instructionsFlag = ON;
 	advancedSettings.muscleCtrlFlag = OFF;
@@ -435,13 +435,13 @@ void initialEEPROMconfig(void)			// write default values to EEPROM
 	advancedSettings.motorEnable = EN;
 	advancedSettings.HANDle_en = OFF;
 	advancedSettings.initConfigFlag = true;  // set flag to signal config complete
-  
+
 	userSettings.sensitivityOffset = 500;
 	userSettings.holdTime = 400;
-    
+
 	EEPROM_writeStruct(ADVANCED_CTRL_LOC,advancedSettings);
 	EEPROM_writeStruct(USER_SETTINGS_LOC,userSettings);
-	
+
 	MYSERIAL_PRINTLN_PGM("Complete");
 }
 
@@ -473,7 +473,7 @@ void startUpMessages(void)
 {
 	MYSERIAL_PRINT_PGM("Open Bionics - Artichoke V");
 	MYSERIAL_PRINTLN((float)VERSION_N);
-  
+
 	MYSERIAL_PRINTLN_PGM("Almond board");
 
 	MYSERIAL_PRINT(textString.right_left[advancedSettings.handFlag-1]);
@@ -505,8 +505,8 @@ void startUpMessages(void)
 		MYSERIAL_PRINT_PGM("Grip Change Mode ");
 		MYSERIAL_PRINTLN(textString.off_on[advancedSettings.gripFlag]);
 	}
-	
-	if(advancedSettings.instructionsFlag) 
+
+	if(advancedSettings.instructionsFlag)
 		printInstructions();			// if instructions not turned off, print initial instructions
 
 	// if demo mode is enabled from start up
@@ -595,10 +595,10 @@ void printInstructions(void)
 	if (advancedSettings.researchFlag == 1)		// if 'A10'
 		MYSERIAL_PRINTLN_PGM("Research mode 0, enter 'A10' to disable this mode");
 
-#ifdef HANDLE_EN			
+#ifdef HANDLE_EN
 	if (advancedSettings.HANDle_en)				// HANDle (Nunchuck) control
 		MYSERIAL_PRINTLN_PGM("HANDle mode, enter 'A11' to disable this mode");
 #endif
-	
+
 	MYSERIAL_PRINT_PGM("\n\n");
 }
