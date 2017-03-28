@@ -90,7 +90,7 @@ void error(const __FlashStringHelper*err) {
 
 void setup()
 {
-        debug = 1;
+        debug = 0;
         // Radio Code
         if (debug) {
           Serial.begin(115200);
@@ -182,8 +182,8 @@ void loop()
               // Send characters to Bluefruit
               Serial.print("[Send] ");
               Serial.println(inputs);
+              ble.print("AT+BLEUARTTX=");
             }
-            ble.print("AT+BLEUARTTX=");
             ble.println(inputs);
 
             // check response stastus
