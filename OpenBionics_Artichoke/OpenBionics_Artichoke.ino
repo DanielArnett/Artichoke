@@ -193,7 +193,7 @@ void loop()
           }
         }
         // Check for incoming characters from Bluefruit
-        ble.println("AT+BLEUARTRX");
+//        ble.println("AT+BLEUARTRX");
         ble.readline();
         if (strcmp(ble.buffer, "OK") == 0 || strcmp(ble.buffer, "") == 0) {
           // no data
