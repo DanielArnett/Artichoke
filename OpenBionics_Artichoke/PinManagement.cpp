@@ -64,7 +64,9 @@ void pinAssignment(void)
 {
 	if(advancedSettings.handFlag == RIGHT)
 	{
-		finger[0].attach(13,4,A5);          // attach the direction pins and the analog sense pins for each motor
+		// Swap the right finger with the left one because our board is funky.
+		finger[0].attach(5,2,A0);			// attach the direction pins and the analog sense pins for each motor
+		//finger[0].attach(13,4,A5);          // attach the direction pins and the analog sense pins for each motor
 		finger[1].attach(3,6,A1);			// attach the direction pins and the analog sense pins for each motor
 		finger[2].attach(7,8,A2);			// attach the direction pins and the analog sense pins for each motor
 		finger[3].attach(10,9,A3);          // attach the direction pins and the analog sense pins for each motor
